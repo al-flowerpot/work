@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3-Day Workout Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14213d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Workout">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef1ec;--surface:#fff;--ink:#14213d;--muted:#5d6779;--line:#d5dad2;--accent:#f2b705;--on-accent:#14213d;--done:#2f5d8a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161f;--surface:#19212d;--ink:#eef1ec;--muted:#9aa5b8;--line:#2b3546;--accent:#f2b705;--on-accent:#14213d;--done:#6fa3d6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161f;--surface:#19212d;--ink:#eef1ec;--muted:#9aa5b8;--line:#2b3546;--accent:#f2b705;--on-accent:#14213d;--done:#6fa3d6;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px 16px 48px}
+h1{font:700 30px/1.1 "Barlow Condensed",Impact,sans-serif;margin:8px 0 14px;letter-spacing:.01em}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.tab{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 4px;font:600 14px/1.2 Barlow,sans-serif;cursor:pointer;text-align:center}
+.tab small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] small{color:var(--bg);opacity:.75}
+.tab.complete::after{content:" ✓";color:var(--accent)}
+.progress{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar{height:100%;width:0;background:var(--accent);transition:width .25s}
+.pmeta{display:flex;justify-content:space-between;color:var(--muted);font-size:14px;margin:6px 0 18px}
+h2{font:700 22px/1 "Barlow Condensed",Impact,sans-serif;margin:22px 0 8px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.item.done{border-color:var(--done)}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.name{font-weight:600}
+.reps{color:var(--muted);font-size:14px;white-space:nowrap}
+.note{color:var(--muted);font-size:14px;margin-top:2px}
+.row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.set{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--muted);font:700 16px "Barlow Condensed",sans-serif;cursor:pointer}
+.set[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.set:focus-visible,.tab:focus-visible,.reset:focus-visible,.w:focus-visible{outline:3px solid var(--done);outline-offset:2px}
+.w{margin-left:auto;width:78px;border:1.5px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);padding:8px;font:500 15px Barlow,sans-serif;text-align:right}
+.w::placeholder{color:var(--muted)}
+.reset{margin-top:24px;width:100%;border:1.5px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:12px;font:600 15px Barlow,sans-serif;cursor:pointer}
+.week{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.wtop{display:flex;justify-content:space-between;align-items:baseline}
+.wtitle{font:700 22px/1 "Barlow Condensed",Impact,sans-serif}
+.wgoal{color:var(--muted);font-size:14px}
+.pips{display:flex;gap:8px;margin:12px 0}
+.pip{flex:1;text-align:center;border:1.5px solid var(--line);border-radius:10px;padding:8px 0;font:600 13px Barlow,sans-serif;color:var(--muted)}
+.pip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.stats{display:flex;gap:20px;color:var(--muted);font-size:14px}
+.stats b{display:block;color:var(--ink);font:700 24px/1.1 "Barlow Condensed",sans-serif}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badge{border-radius:16px;padding:5px 10px;font:600 13px Barlow,sans-serif;border:1.5px dashed var(--line);color:var(--muted)}
+.badge.on{border:1.5px solid var(--done);color:var(--ink)}
+.recent{margin-top:10px;color:var(--muted);font-size:13px}
+.modes{grid-template-columns:repeat(3,1fr);margin-bottom:16px}
+.in{width:100%;border:1.5px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);padding:10px;font:500 15px Barlow,sans-serif}
+.in::placeholder{color:var(--muted)}
+.in:focus-visible,.fb:focus-visible,.fdel:focus-visible,.fnav:focus-visible,summary:focus-visible{outline:3px solid var(--done);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.lbl{display:block;color:var(--muted);font-size:13px;margin-bottom:3px}
+.fnav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.fnav{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:700 20px sans-serif;cursor:pointer}
+.fnav:disabled{opacity:.35;cursor:default}
+.fdate{font:700 22px "Barlow Condensed",Impact,sans-serif}
+.fb{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);padding:10px 0;font:500 16px Barlow,sans-serif;cursor:pointer}
+.fb:first-child{border-top:0}
+.fb small{display:block;color:var(--muted);font-size:13px}
+.frow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.frow:first-child{border-top:0}
+.frow small{display:block;color:var(--muted);font-size:13px}
+.fdel{border:0;background:none;color:var(--muted);font:600 14px Barlow,sans-serif;padding:8px;cursor:pointer;text-decoration:underline}
+.cbtn{margin-top:10px;width:100%;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);padding:12px;font:700 16px Barlow,sans-serif;cursor:pointer}
+summary{cursor:pointer;font-weight:600;padding:12px 0}
+
+[hidden]{display:none!important}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin-bottom:8px}
+.srow{padding:10px 0;border-top:1px solid var(--line)}
+.srow:first-child{border-top:0}
+.srow b{display:block;font-weight:600}
+.srow span{color:var(--muted);font-size:14px}
+.sintro{color:var(--muted);margin:0 0 4px}
+.links{display:flex;gap:16px;margin-top:8px}
+.links a{color:var(--done);font:600 14px Barlow,sans-serif;padding:6px 0}
+.links a:focus-visible{outline:3px solid var(--done);outline-offset:2px}
+.swapbtn{margin-top:8px;border:0;background:none;color:var(--done);font:600 14px Barlow,sans-serif;padding:6px 0;cursor:pointer;text-decoration:underline}
+.alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.alt{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:18px;padding:8px 12px;font:500 14px Barlow,sans-serif;cursor:pointer}
+.alt.orig{border-style:dashed;color:var(--muted)}
+.swapbtn:focus-visible,.alt:focus-visible{outline:3px solid var(--done);outline-offset:2px}
+.finish{display:none;background:var(--accent);color:var(--on-accent);border-radius:12px;padding:14px;margin-top:16px;font:700 20px "Barlow Condensed",sans-serif;text-align:center}
+.finish.show{display:block}
+</style>
+</head>
+<body>
+<main>
+<h1>3-Day Workout</h1>
+<div class="tabs modes" role="tablist"><button class="tab" role="tab" id="mTrain">Workouts</button><button class="tab" role="tab" id="mSnacks">Snacks</button><button class="tab" role="tab" id="mFood">Food log</button></div>
+<div id="train">
+<section class="week" id="week" aria-label="Weekly progress"></section>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+<div class="pmeta"><span id="count">0 of 0 done</span><span id="pct">0%</span></div>
+<div id="list"></div>
+<div class="finish" id="finish">Workout complete. Nice work!</div>
+<button class="reset" id="reset">Reset this day</button>
+</div>
+<div id="snacks" hidden></div>
+<div id="food" hidden></div>
+</main>
+<script>
+var WARM={h:"Warm-up",items:[{n:"Easy bike or incline walk",r:"5 min",s:1,x:1},{n:"Bodyweight squats, arm circles, hip openers",r:"1–2 rounds",s:1,x:1}]};
+function fl(list){return {h:"Flexibility",items:list.map(function(n){return {n:n,r:"30–45 sec",s:1}})}}
+var DAYS=[
+{id:"fullA",t:"Full A",d:"Mon",dow:1,sec:[WARM,{h:"Strength",lift:1,items:[
+{n:"Barbell back squat",r:"6–8 reps",s:4,note:"Weeks 1–2: stop 3 reps short of failure, then add weight each week"},{n:"Barbell bench press",r:"6–8 reps",s:4,note:"Add 5 lb once you hit 8 reps on every set"},{n:"Barbell row",r:"8–10 reps",s:3},{n:"Romanian deadlift",r:"8 reps",s:3,note:"Hinge at the hips, back flat"},{n:"Dumbbell shoulder press",r:"8–10 reps",s:3},{n:"Hanging leg raise or cable crunch",r:"10–12 reps",s:3}]},
+{h:"Cardio",items:[{n:"Incline treadmill walk",r:"25 min",s:1,note:"Steady pace, breathing hard but able to talk"}]},
+fl(["Hamstring stretch","Hip flexor stretch","Pigeon pose"])]},
+{id:"fullB",t:"Full B",d:"Wed",dow:3,sec:[WARM,{h:"Strength",lift:1,items:[
+{n:"Leg press",r:"10–12 reps",s:4},{n:"Incline dumbbell press",r:"8–10 reps",s:3},{n:"Pull-ups or assisted pull-ups",r:"6–10 reps",s:4},{n:"Hip thrust",r:"8–10 reps",s:3},{n:"Lateral raise",r:"12–15 reps",s:3},{n:"Dumbbell curl",r:"10–12 reps",s:3},{n:"Dead bug or Pallof press",r:"10 per side",s:3}]},
+{h:"Cardio",items:[{n:"Bike or rower intervals",r:"15 min",s:1,note:"30 sec hard, 90 sec easy"}]},
+fl(["Thoracic spine rotations","Doorway chest stretch","World’s greatest stretch"])]},
+{id:"fullC",t:"Full C",d:"Fri",dow:5,sec:[WARM,{h:"Strength",lift:1,items:[
+{n:"Bulgarian split squat",r:"8 per leg",s:3},{n:"Dips or machine chest press",r:"8–12 reps",s:3},{n:"Chest-supported row",r:"10 reps",s:3},{n:"Leg curl",r:"10–12 reps",s:3},{n:"Face pulls",r:"15 reps",s:3},{n:"Triceps pushdown",r:"10–12 reps",s:3},{n:"Standing calf raise",r:"12–15 reps",s:3}]},
+{h:"Cardio",items:[{n:"Elliptical or incline walk",r:"25 min",s:1}]},
+fl(["World’s greatest stretch","Hamstring stretch","Doorway chest stretch"])]}
+];
+var G={
+squat:["Barbell back squat","Front squat","Hack squat machine","Leg press","Smith machine squat","Goblet squat","Box squat"],
+hinge:["Romanian deadlift","Trap bar deadlift","Conventional deadlift","Back extension","Cable pull-through","Good morning","Kettlebell swing"],
+lunge:["Bulgarian split squat","Walking lunges","Reverse lunges","Step-ups","Split squat","Lateral lunges"],
+core:["Hanging leg raise or cable crunch","Hanging leg raise","Cable crunch","Ab wheel rollout","Pallof press","Dead bug","Plank","Side plank","Bird dog"],
+hpress:["Barbell bench press","Incline barbell press","Incline dumbbell press","Dumbbell bench press","Dips or machine chest press","Machine chest press","Smith machine bench press","Push-ups","Floor press"],
+hrow:["Barbell row","Pendlay row","Seated cable row","Chest-supported row","T-bar row","One-arm dumbbell row","Machine row","Inverted row"],
+vpress:["Barbell overhead press","Dumbbell shoulder press","Machine shoulder press","Arnold press","Landmine press"],
+vpull:["Pull-ups or assisted pull-ups","Pull-ups","Assisted pull-ups","Lat pulldown","Neutral-grip pulldown","Straight-arm pulldown"],
+tri:["Triceps pushdown","Overhead triceps extension","Skull crushers","Close-grip bench press","Dips","Bench dips","Close-grip push-ups"],
+bi:["Dumbbell curl","Hammer curl","Cable curl","Incline dumbbell curl"],
+thrust:["Hip thrust","Hip thrust machine","Glute bridge","Cable pull-through","Cable glute kickback"],
+curl:["Leg curl","Seated leg curl","Stability ball hamstring curl","Slider leg curl"],
+calf:["Standing calf raise","Seated calf raise","Single-leg calf raise","Leg press calf raise"],
+lat:["Lateral raise","Cable lateral raise","Machine lateral raise","Seated dumbbell lateral raise"],
+rear:["Face pulls","Reverse fly","Band pull-aparts","Rear-delt machine fly"],
+cardio:["Incline treadmill walk","Bike","Rower","Elliptical","Stair climber","Swimming"]};
+var MAP={"Goblet squat":"squat","Barbell back squat":"squat","Barbell bench press":"hpress","Barbell row":"hrow","Hanging leg raise or cable crunch":"core","Pull-ups or assisted pull-ups":"vpull","Bulgarian split squat":"lunge","Dips or machine chest press":"hpress","Romanian deadlift":"hinge","Walking lunges":"lunge","Leg press":"squat","Plank":"core","Dumbbell bench press":"hpress","Seated cable row":"hrow","Dumbbell shoulder press":"vpress","Lat pulldown":"vpull","Triceps pushdown":"tri","Dumbbell curl":"bi","Hip thrust":"thrust","Step-ups or split squats":"lunge","Leg curl":"curl","Standing calf raise":"calf","Dead bug or Pallof press":"core","Incline dumbbell press":"hpress","Chest-supported row":"hrow","Lateral raise":"lat","Face pulls":"rear","Push-ups":"hpress","Incline treadmill walk":"cardio","Bike or rower intervals":"cardio","Elliptical or incline walk":"cardio"};
+var openSwap=null;
+var KEY="workout-tracker-v1",state={checks:{},weights:{},swaps:{},mode:"train",food:{},custom:[],goals:{cal:2300,pro:190},hist:{},week:null,tab:null};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==="object")state=Object.assign(state,p)}}catch(e){}
+var GOAL=3;
+function wkey(x){return x.getFullYear()+"-"+("0"+(x.getMonth()+1)).slice(-2)+"-"+("0"+x.getDate()).slice(-2)}
+function prevKey(k){var q=k.split("-");return wkey(new Date(+q[0],+q[1]-1,+q[2]-7))}
+var now=new Date(),mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7)),CUR=wkey(mon);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function dayById(id){return DAYS.filter(function(d){return d.id===id})[0]}
+if(!state.swaps||typeof state.swaps!=="object")state.swaps={};
+if(!state.hist||typeof state.hist!=="object")state.hist={};
+if(state.week&&state.week!==CUR)state.checks={};
+if(!state.food||typeof state.food!=="object")state.food={};
+if(!Array.isArray(state.custom))state.custom=[];
+if(!state.goals||!(state.goals.cal>0)||!(state.goals.pro>0))state.goals={cal:2300,pro:190};
+if(["train","snacks","food"].indexOf(state.mode)<0)state.mode="train";
+state.week=CUR;
+if(!state.tab||!dayById(state.tab)){
+  var dw=new Date().getDay(),pick=DAYS.filter(function(d){return d.dow>=dw})[0]||DAYS[0];state.tab=pick.id}
+function total(day){var t=0;day.sec.forEach(function(s){s.items.forEach(function(i){t+=i.s})});return t}
+function doneCount(day){var c=0;day.sec.forEach(function(s,si){s.items.forEach(function(i,ii){for(var k=0;k<i.s;k++)if(state.checks[day.id+"-"+si+"-"+ii+"-"+k])c++})});return c}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function updateHist(){
+  var done=DAYS.filter(function(d){return doneCount(d)===total(d)}).map(function(d){return d.id}),sets=0;
+  DAYS.forEach(function(d){sets+=doneCount(d)});state.hist[CUR]={done:done,sets:sets};save()}
+function streak(){
+  var h=state.hist,k=CUR,n=0;if(h[k]&&h[k].done.length>=GOAL)n++;
+  k=prevKey(k);while(h[k]&&h[k].done.length>=GOAL){n++;k=prevKey(k)}return n}
+function bestStreak(){
+  var keys=Object.keys(state.hist).sort(),best=0,run=0,last=null;
+  keys.forEach(function(k){
+    if(state.hist[k].done.length>=GOAL){run=(last&&prevKey(k)===last)?run+1:1;last=k;if(run>best)best=run}else{run=0;last=null}});
+  return best}
+function renderWeek(){
+  var box=document.getElementById("week");box.innerHTML="";
+  var h=state.hist,cur=h[CUR]||{done:[],sets:0},tw=0,ts=0,perfect=0;
+  Object.keys(h).forEach(function(k){tw+=h[k].done.length;ts+=h[k].sets;if(h[k].done.length>=GOAL)perfect++});
+  var top=el("div","wtop");top.appendChild(el("span","wtitle","This week"));
+  top.appendChild(el("span","wgoal",cur.done.length>=GOAL?"Goal hit":cur.done.length+" of "+GOAL+" workouts"));box.appendChild(top);
+  var pips=el("div","pips");
+  DAYS.forEach(function(d){pips.appendChild(el("div","pip"+(cur.done.indexOf(d.id)>-1?" on":""),(cur.done.indexOf(d.id)>-1?"✓ ":"")+d.t))});box.appendChild(pips);
+  var st=el("div","stats"),s1=el("div"),s2=el("div"),s3=el("div");
+  s1.appendChild(el("b",null,String(cur.sets)));s1.appendChild(document.createTextNode("sets this week"));
+  s2.appendChild(el("b",null,String(streak())));s2.appendChild(document.createTextNode("week streak"));
+  s3.appendChild(el("b",null,String(tw)));s3.appendChild(document.createTextNode("workouts total"));
+  st.appendChild(s1);st.appendChild(s2);st.appendChild(s3);box.appendChild(st);
+  var best=bestStreak(),bd=[["First workout",tw>=1],["Goal week",perfect>=1],["3-week streak",best>=3],["100 sets",ts>=100],["25 workouts",tw>=25]];
+  var bw=el("div","badges");bd.forEach(function(b){bw.appendChild(el("span","badge"+(b[1]?" on":""),(b[1]?"✓ ":"")+b[0]))});box.appendChild(bw);
+  var parts=[],k=prevKey(CUR);
+  for(var i=0;i<4;i++){if(h[k]){var q=k.split("-");parts.push(new Date(+q[0],+q[1]-1,+q[2]).toLocaleDateString(undefined,{month:"short",day:"numeric"})+": "+h[k].done.length+"/"+GOAL)}k=prevKey(k)}
+  if(parts.length)box.appendChild(el("div","recent","Past weeks — "+parts.join("  ")))}
+function render(){
+  updateHist();
+  var day=dayById(state.tab),tabs=document.getElementById("tabs");tabs.innerHTML="";
+  DAYS.forEach(function(d){
+    var b=el("button","tab"+(doneCount(d)===total(d)?" complete":""));b.setAttribute("role","tab");b.setAttribute("aria-selected",d.id===state.tab);
+    b.appendChild(document.createTextNode(d.t));b.appendChild(el("small",null,d.d));
+    b.onclick=function(){state.tab=d.id;save();render()};tabs.appendChild(b)});
+  var list=document.getElementById("list");list.innerHTML="";
+  day.sec.forEach(function(sec,si){
+    list.appendChild(el("h2",null,sec.h));
+    sec.items.forEach(function(it,ii){
+      var ikey=day.id+"-"+si+"-"+ii,nm=state.swaps[ikey]||it.n,card=el("div","item"),top=el("div","top");
+      top.appendChild(el("span","name",nm));top.appendChild(el("span","reps",(it.s>1?it.s+" × ":"")+it.r));card.appendChild(top);
+      if(it.note&&!state.swaps[ikey])card.appendChild(el("div","note",it.note));
+      var row=el("div","row"),n=0;
+      for(var k=0;k<it.s;k++){(function(k){
+        var id=day.id+"-"+si+"-"+ii+"-"+k,on=!!state.checks[id];if(on)n++;
+        var b=el("button","set",it.s>1?String(k+1):"✓");b.setAttribute("aria-pressed",on);
+        b.setAttribute("aria-label",nm+(it.s>1?", set "+(k+1):""));
+        b.onclick=function(){if(state.checks[id])delete state.checks[id];else state.checks[id]=1;save();render()};row.appendChild(b)})(k)}
+      if(sec.lift){var w=el("input","w");w.type="text";w.inputMode="decimal";w.placeholder="lbs";w.setAttribute("aria-label","Weight for "+nm);
+        w.value=state.weights[nm]||"";w.oninput=function(){state.weights[nm]=w.value;save()};row.appendChild(w)}
+      if(n===it.s)card.classList.add("done");card.appendChild(row);
+      if(!it.x){
+        var q=encodeURIComponent(nm),lk=el("div","links");
+        var v=el("a",null,"Watch video");v.href="https://www.youtube.com/results?search_query="+q+"%20proper%20form%20tutorial";
+        var im=el("a",null,"See photos");im.href="https://www.google.com/search?tbm=isch&q="+q+"%20exercise%20form";
+        [v,im].forEach(function(a){a.target="_blank";a.rel="noopener noreferrer";lk.appendChild(a)});card.appendChild(lk)}
+      var grp=MAP[it.n];
+      if(grp){
+        var sb=el("button","swapbtn",openSwap===ikey?"Close":"Swap exercise");sb.setAttribute("aria-expanded",openSwap===ikey);
+        sb.onclick=function(){openSwap=openSwap===ikey?null:ikey;render()};card.appendChild(sb);
+        if(openSwap===ikey){
+          var box=el("div","alts"),opts=G[grp].filter(function(a){return a!==nm&&a!==it.n});
+          if(nm!==it.n)opts.unshift(it.n);
+          opts.forEach(function(a){
+            var ab=el("button","alt"+(a===it.n?" orig":""),a===it.n?"Original: "+a:a);
+            ab.onclick=function(){
+              if(a===it.n)delete state.swaps[ikey];else state.swaps[ikey]=a;
+              Object.keys(state.checks).forEach(function(k){if(k.indexOf(ikey+"-")===0)delete state.checks[k]});
+              openSwap=null;save();render()};box.appendChild(ab)});
+          card.appendChild(box)}}list.appendChild(card)})});
+  var t=total(day),c=doneCount(day),pct=t?Math.round(c/t*100):0;
+  document.getElementById("bar").style.width=pct+"%";
+  document.getElementById("count").textContent=c+" of "+t+" done";
+  document.getElementById("pct").textContent=pct+"%";
+  var fin=document.getElementById("finish"),nw=state.hist[CUR].done.length;
+  fin.textContent=nw>=GOAL?"Weekly goal hit! "+streak()+"-week streak.":"Workout complete. "+nw+" of "+GOAL+" this week.";
+  fin.classList.toggle("show",c===t);
+  renderWeek()}
+document.getElementById("reset").onclick=function(){
+  var day=dayById(state.tab);Object.keys(state.checks).forEach(function(k){if(k.indexOf(day.id+"-")===0)delete state.checks[k]});save();render()};
+var SNACKS=[
+{h:"Protein-heavy",items:[["Greek yogurt","15–20 g protein per cup. Plain, or lightly sweetened with fruit or honey."],["Cottage cheese","About 14 g per half cup. Try pineapple, berries, or everything seasoning."],["Jerky","About 10 g protein per ounce. Check the label for sugar and sodium."],["String cheese","6–8 g protein each, and easy to portion."],["Hard-boiled eggs","About 6 g protein each. Make a batch at the start of the week."],["Protein bar or shake","Aim for 15 g or more protein and under about 200 calories. Read the label."],["Roasted chickpeas or edamame","Crunchy, with protein and fiber."]]},
+{h:"Crunchy and salty",items:[["Popcorn","About 100 calories for 3 cups, air-popped or lightly buttered."],["Rice cakes","Top with peanut butter or cottage cheese."],["Whole-grain crackers","Pair with hummus or cheese."],["Nuts","Measure about 1 oz (160–180 calories) instead of eating from the bag."],["Pretzels","Dip in hummus or mustard."],["Seaweed snacks","Very light and salty."]]},
+{h:"Sweet",items:[["Dark chocolate","70% or higher. A square or two is a satisfying portion."],["Yogurt and berry parfait","Or freeze it into yogurt bark."],["Apple slices with peanut butter","Fiber and protein together."],["Protein smoothie","Blend with fruit."]]},
+{h:"Habits that matter more than the food",items:[["Portion before you eat","Put a serving in a bowl instead of eating from the package."],["Pair protein with fiber","Apple and peanut butter holds you longer than either alone."],["Count the calories","Most snacks should land around 100–250 calories."],["Keep trigger foods out of the house","Chips, cookies, and ice cream are fine occasionally, but easier to skip when you have to go out to get them."],["Don’t treat treats as forbidden","A small portion a few times a week makes the plan easier to keep."],["Around your workout","A banana or yogurt 60–90 minutes before lifting. A protein-rich snack or meal after."]]}
+];
+(function(){
+  var box=document.getElementById("snacks");
+  box.appendChild(el("p","sintro","Aim for 100–250 calories per snack, with protein when you can. Your daily protein target is roughly 150–180 g."));
+  SNACKS.forEach(function(c){
+    box.appendChild(el("h2",null,c.h));var card=el("div","scard");
+    c.items.forEach(function(r){var row=el("div","srow");row.appendChild(el("b",null,r[0]));row.appendChild(el("span",null,r[1]));card.appendChild(row)});
+    box.appendChild(card)});
+  box.appendChild(el("div","recent","Not medical advice. If you have health conditions or food allergies, check with a doctor or registered dietitian."))})();
+var FOODS=[
+["Chicken breast, cooked","4 oz",187,35,0,4],["Ground beef 90% lean, cooked","4 oz",230,25,0,14],["Sirloin steak, cooked","4 oz",230,32,0,11],["Salmon, cooked","4 oz",233,25,0,14],["Shrimp, cooked","4 oz",113,24,0,1],["Tuna, canned in water","1 can",120,26,0,1],["Turkey deli slices","2 oz",60,12,1,1],["Egg, large","1 egg",72,6,0,5],["Egg whites","3 whites",51,11,1,0],["Bacon","2 slices",90,6,0,7],["Tofu, firm","4 oz",90,10,2,5],["Beef jerky","1 oz",80,13,3,1],
+["Greek yogurt, plain nonfat","1 cup",130,23,8,1],["Cottage cheese, low-fat","1/2 cup",90,12,5,2.5],["String cheese","1 stick",80,7,1,6],["Cheddar cheese","1 oz",113,7,0,9],["Milk, 2%","1 cup",122,8,12,5],["Whey protein shake","1 scoop",120,24,3,1],["Protein bar","1 bar",200,20,22,7],
+["Oatmeal, cooked","1 cup",154,6,27,3],["Brown rice, cooked","1 cup",216,5,45,2],["White rice, cooked","1 cup",205,4,45,0],["Pasta, cooked","1 cup",220,8,43,1],["Quinoa, cooked","1 cup",222,8,39,4],["Whole wheat bread","1 slice",80,4,14,1],["Bagel","1 medium",270,10,53,1.5],["Flour tortilla","8 inch",140,4,24,3],["Sweet potato, baked","1 medium",112,2,26,0],["Potato, baked","1 medium",161,4,37,0],["Cheerios","1 cup",100,3,20,2],["Rice cake","1 cake",35,1,7,0],["Whole-grain crackers","1 oz",120,3,20,4],["Popcorn, air-popped","3 cups",93,3,19,1],["Pretzels","1 oz",108,3,23,1],["Black beans","1/2 cup",114,8,20,0.5],["Lentils, cooked","1/2 cup",115,9,20,0],
+["Banana","1 medium",105,1,27,0],["Apple","1 medium",95,0,25,0],["Orange","1 medium",62,1,15,0],["Blueberries","1 cup",84,1,21,0],["Strawberries","1 cup",49,1,12,0],["Grapes","1 cup",104,1,27,0],["Broccoli, cooked","1 cup",55,4,11,1],["Spinach, raw","2 cups",14,2,2,0],["Mixed salad greens","2 cups",20,1,4,0],["Carrots","1 cup",52,1,12,0],["Green beans","1 cup",31,2,7,0],["Avocado","1/2 fruit",120,1,6,11],
+["Peanut butter","2 tbsp",190,8,7,16],["Almonds","1 oz",164,6,6,14],["Mixed nuts","1 oz",170,5,6,15],["Olive oil","1 tbsp",119,0,0,14],["Butter","1 tbsp",102,0,0,12],["Mayonnaise","1 tbsp",94,0,0,10],["Hummus","2 tbsp",70,2,4,5],["Dark chocolate 70%","1 oz",170,2,13,12],["Honey","1 tbsp",64,0,17,0],["Ketchup","1 tbsp",20,0,5,0],["Cheese pizza","1 slice",285,12,36,10],["Soda","12 oz",140,0,39,0],["Orange juice","1 cup",112,2,26,0],["Beer","12 oz",153,2,13,0],["Coffee, black","1 cup",2,0,0,0]];
+var fDate=wkey(new Date()),F={};
+function allFoods(){return state.custom.concat(FOODS.map(function(r){return {n:r[0],s:r[1],c:r[2],p:r[3],cb:r[4],f:r[5]}}))}
+function r0(n){return Math.round(n)}
+function logFood(x,q){(state.food[fDate]=state.food[fDate]||[]).push({n:x.n,s:x.s,c:x.c,p:x.p,cb:x.cb,f:x.f,q:q});save();updFood()}
+function shiftDay(n){var q=fDate.split("-");fDate=wkey(new Date(+q[0],+q[1]-1,+q[2]+n));updFood()}
+function updFood(){
+  var today=wkey(new Date()),q=fDate.split("-"),L=state.food[fDate]||[],t={c:0,p:0,cb:0,f:0};
+  F.date.textContent=fDate===today?"Today":new Date(+q[0],+q[1]-1,+q[2]).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  F.next.disabled=fDate>=today;
+  L.forEach(function(e){t.c+=e.c*e.q;t.p+=e.p*e.q;t.cb+=e.cb*e.q;t.f+=e.f*e.q});
+  var g=state.goals;
+  F.cal.textContent=r0(t.c)+" / "+g.cal+" cal";F.left.textContent=t.c<=g.cal?r0(g.cal-t.c)+" left":r0(t.c-g.cal)+" over";
+  F.bar.style.width=Math.min(100,t.c/g.cal*100)+"%";
+  F.p.textContent=r0(t.p)+" g";F.pg.textContent="protein (goal "+g.pro+" g)";F.cb.textContent=r0(t.cb)+" g";F.f.textContent=r0(t.f)+" g";
+  F.log.innerHTML="";
+  if(!L.length)F.log.appendChild(el("div","note","Nothing logged yet. Search for a food above."));
+  L.forEach(function(e,i){
+    var row=el("div","frow"),l=el("div");l.appendChild(el("b",null,e.n));
+    l.appendChild(el("small",null,e.q+" × "+e.s+" · "+r0(e.c*e.q)+" cal · "+r0(e.p*e.q)+"p "+r0(e.cb*e.q)+"c "+r0(e.f*e.q)+"f"));
+    var d=el("button","fdel","Remove");d.setAttribute("aria-label","Remove "+e.n);
+    d.onclick=function(){L.splice(i,1);save();updFood()};row.appendChild(l);row.appendChild(d);F.log.appendChild(row)})}
+function updResults(){
+  var qy=F.search.value.trim().toLowerCase();F.res.innerHTML="";F.res.hidden=!qy;if(!qy)return;
+  var hits=allFoods().filter(function(x){return x.n.toLowerCase().indexOf(qy)>-1}).slice(0,8);
+  if(!hits.length){F.res.appendChild(el("div","note","No match. Add it below as your own food."));return}
+  hits.forEach(function(x){
+    var b=el("button","fb",x.n);b.appendChild(el("small",null,x.s+" · "+r0(x.c)+" cal · "+r0(x.p)+" g protein"));
+    b.onclick=function(){logFood(x,parseFloat(F.qty.value)>0?parseFloat(F.qty.value):1);F.search.value="";updResults()};F.res.appendChild(b)})}
+function bcStatus(t){F.bcs.textContent=t}
+function showProduct(x){
+  F.bcres.innerHTML="";F.bcres.className="scard";bcStatus("");
+  var b=el("button","fb","Log "+x.n);b.appendChild(el("small",null,x.s+" · "+r0(x.c)+" cal · "+r0(x.p)+"p "+r0(x.cb)+"c "+r0(x.f)+"f"));
+  b.onclick=function(){
+    if(!state.custom.some(function(y){return y.code===x.code}))state.custom.unshift(x);
+    logFood(x,parseFloat(F.qty.value)>0?parseFloat(F.qty.value):1);F.bcres.innerHTML="";F.bcres.className="";F.bc.value=""};
+  F.bcres.appendChild(b)}
+function lookup(code){
+  code=String(code).replace(/\D/g,"");F.bcres.innerHTML="";F.bcres.className="";
+  if(code.length<8){bcStatus("Enter the 8–13 digits under the barcode.");return}
+  var hit=state.custom.filter(function(x){return x.code===code})[0];
+  if(hit){showProduct(hit);return}
+  bcStatus("Looking up…");
+  fetch("https://world.openfoodfacts.org/api/v2/product/"+code+".json?fields=product_name,brands,serving_size,nutriments")
+  .then(function(r){return r.json()}).then(function(d){
+    if(d.status!==1||!d.product){bcStatus("Product not found. Add it as your own food below.");return}
+    var p=d.product,n=p.nutriments||{},sv=n["energy-kcal_serving"]!=null,suf=sv?"_serving":"_100g",c=n["energy-kcal"+suf];
+    if(c==null){bcStatus("Found it, but calories are missing. Add it as your own food below.");return}
+    showProduct({n:((p.brands?p.brands.split(",")[0]+" ":"")+(p.product_name||"Unknown product")).trim(),s:sv?(p.serving_size||"1 serving"):"100 g",c:+c||0,p:+n["proteins"+suf]||0,cb:+n["carbohydrates"+suf]||0,f:+n["fat"+suf]||0,code:code})
+  }).catch(function(){bcStatus("Couldn’t reach the food database. Check your connection, or add it as your own food below.")})}
+var cam=null;
+function stopCam(){if(cam){cam.stream.getTracks().forEach(function(t){t.stop()});clearInterval(cam.timer);cam=null}if(F.camBox)F.camBox.hidden=true}
+function startCam(){
+  if(cam)return;
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then(function(stream){
+    var det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
+    F.vid.srcObject=stream;F.vid.play();F.camBox.hidden=false;
+    cam={stream:stream,timer:setInterval(function(){
+      det.detect(F.vid).then(function(r){if(r.length&&cam){var v=r[0].rawValue;stopCam();F.bc.value=v;lookup(v)}}).catch(function(){})},400)}
+  }).catch(function(){bcStatus("Couldn’t open the camera. Type the number instead.")})}
+(function(){
+  var box=document.getElementById("food");
+  var nav=el("div","fnav-row"),pv=el("button","fnav","‹"),nx=el("button","fnav","›");
+  pv.setAttribute("aria-label","Previous day");nx.setAttribute("aria-label","Next day");F.next=nx;F.date=el("span","fdate");
+  pv.onclick=function(){shiftDay(-1)};nx.onclick=function(){shiftDay(1)};nav.appendChild(pv);nav.appendChild(F.date);nav.appendChild(nx);box.appendChild(nav);
+  var sum=el("section","week"),tp=el("div","wtop");F.cal=el("span","wtitle");F.left=el("span","wgoal");tp.appendChild(F.cal);tp.appendChild(F.left);sum.appendChild(tp);
+  var pr=el("div","progress");F.bar=el("div","bar");pr.appendChild(F.bar);pr.style.margin="10px 0 12px";sum.appendChild(pr);
+  var st=el("div","stats");
+  [["p","pg"],["cb",null],["f",null]].forEach(function(k,i){var d=el("div");F[k[0]]=el("b");d.appendChild(F[k[0]]);
+    if(k[1]){F[k[1]]=document.createElement("span");d.appendChild(F[k[1]])}else d.appendChild(document.createTextNode(i===1?"carbs":"fat"));st.appendChild(d)});
+  sum.appendChild(st);
+  var gr=el("div","grid2"),g1=el("div"),g2=el("div");
+  [[g1,"Calorie goal","cal"],[g2,"Protein goal (g)","pro"]].forEach(function(x){
+    var lb=el("label","lbl",x[1]),inp=el("input","in");inp.type="number";inp.inputMode="numeric";inp.min="1";inp.value=state.goals[x[2]];
+    inp.oninput=function(){var v=parseFloat(inp.value);if(v>0){state.goals[x[2]]=v;save();updFood()}};lb.appendChild(inp);x[0].appendChild(lb);gr.appendChild(x[0])});
+  sum.appendChild(gr);box.appendChild(sum);
+  box.appendChild(el("h2",null,"Add food"));
+  var ag=el("div","grid2");ag.style.gridTemplateColumns="3fr 1fr";ag.style.marginTop="0";
+  F.search=el("input","in");F.search.type="search";F.search.placeholder="Search: chicken, rice, banana";F.search.setAttribute("aria-label","Search foods");F.search.oninput=updResults;
+  F.qty=el("input","in");F.qty.type="number";F.qty.inputMode="decimal";F.qty.value="1";F.qty.min="0.25";F.qty.step="0.25";F.qty.setAttribute("aria-label","Number of servings");
+  ag.appendChild(F.search);ag.appendChild(F.qty);box.appendChild(ag);
+  box.appendChild(el("div","recent","Left box: food. Right box: number of servings."));
+  F.res=el("div","scard");F.res.hidden=true;F.res.style.marginTop="8px";box.appendChild(F.res);
+  box.appendChild(el("h2",null,"Scan a barcode"));
+  var bg=el("div","grid2");bg.style.gridTemplateColumns="3fr 1fr";bg.style.marginTop="0";
+  F.bc=el("input","in");F.bc.type="text";F.bc.inputMode="numeric";F.bc.placeholder="Barcode number";F.bc.setAttribute("aria-label","Barcode number");
+  var lk=el("button","cbtn","Look up");lk.style.marginTop="0";lk.onclick=function(){lookup(F.bc.value)};
+  F.bc.onkeydown=function(e){if(e.key==="Enter")lookup(F.bc.value)};
+  bg.appendChild(F.bc);bg.appendChild(lk);box.appendChild(bg);
+  if("BarcodeDetector" in window&&navigator.mediaDevices){
+    var cb=el("button","swapbtn","Scan with camera");cb.onclick=startCam;box.appendChild(cb);
+    F.camBox=el("div");F.camBox.hidden=true;F.vid=document.createElement("video");F.vid.setAttribute("playsinline","");F.vid.muted=true;F.vid.style.cssText="width:100%;border-radius:12px;background:#000";
+    var cc=el("button","swapbtn","Cancel scan");cc.onclick=stopCam;F.camBox.appendChild(F.vid);F.camBox.appendChild(cc);box.appendChild(F.camBox)}
+  F.bcs=el("div","recent");F.bcs.setAttribute("role","status");box.appendChild(F.bcs);
+  F.bcres=el("div");F.bcres.style.marginTop="8px";box.appendChild(F.bcres);
+  var det=document.createElement("details");det.className="scard";det.style.marginTop="8px";det.appendChild(el("summary",null,"Add your own food"));
+  var cf={};[["n","Name","text"],["s","Serving (e.g. 1 bowl)","text"],["c","Calories","number"],["p","Protein (g)","number"],["cb","Carbs (g)","number"],["f","Fat (g)","number"]].forEach(function(x){
+    var lb=el("label","lbl",x[1]),inp=el("input","in");inp.type=x[2];if(x[2]==="number"){inp.inputMode="decimal";inp.min="0"}cf[x[0]]=inp;lb.appendChild(inp);lb.style.marginTop="8px";det.appendChild(lb)});
+  var sv=el("button","cbtn","Save and log one serving");
+  sv.onclick=function(){
+    var n=cf.n.value.trim(),c=parseFloat(cf.c.value);if(!n||!(c>=0)){cf.n.focus();return}
+    var x={n:n,s:cf.s.value.trim()||"1 serving",c:c,p:parseFloat(cf.p.value)||0,cb:parseFloat(cf.cb.value)||0,f:parseFloat(cf.f.value)||0};
+    state.custom.unshift(x);Object.keys(cf).forEach(function(k){cf[k].value=""});det.open=false;logFood(x,1)};
+  det.appendChild(sv);box.appendChild(det);
+  box.appendChild(el("h2",null,"Logged"));F.log=el("div","scard");box.appendChild(F.log);
+  box.appendChild(el("div","recent","Values are typical estimates, so check package labels for exact numbers. Calorie goal is a starting point: adjust it based on how your weight trends over a few weeks."));
+  updFood()})();
+function showMode(){
+  [["train","mTrain"],["snacks","mSnacks"],["food","mFood"]].forEach(function(x){
+    var on=state.mode===x[0];if(x[0]==='food'&&!on)stopCam();document.getElementById(x[0]).hidden=!on;
+    var b=document.getElementById(x[1]);b.setAttribute("aria-selected",on);b.onclick=function(){state.mode=x[0];save();showMode()}})}
+render();showMode();
+</script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>

@@ -96,6 +96,9 @@ summary{cursor:pointer;font-weight:600;padding:12px 0}
 .swapbtn:focus-visible,.alt:focus-visible{outline:3px solid var(--done);outline-offset:2px}
 .finish{display:none;background:var(--accent);color:var(--on-accent);border-radius:12px;padding:14px;margin-top:16px;font:700 20px "Barlow Condensed",sans-serif;text-align:center}
 .finish.show{display:block}
+.pin{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:8px 0 2px;margin-bottom:12px;box-shadow:0 8px 8px -8px rgba(0,0,0,.3)}
+.pin .pmeta{margin:6px 0 6px}
+.pin .wtop{margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -105,8 +108,8 @@ summary{cursor:pointer;font-weight:600;padding:12px 0}
 <div id="train">
 <section class="week" id="week" aria-label="Weekly progress"></section>
 <div class="tabs" role="tablist" id="tabs"></div>
-<div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
-<div class="pmeta"><span id="count">0 of 0 done</span><span id="pct">0%</span></div>
+<div class="pin"><div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+<div class="pmeta"><span id="count">0 of 0 done</span><span id="pct">0%</span></div></div>
 <div id="list"></div>
 <div class="finish" id="finish">Workout complete. Nice work!</div>
 <button class="reset" id="reset">Reset this day</button>
@@ -285,6 +288,7 @@ function updFood(){
   var g=state.goals;
   F.cal.textContent=r0(t.c)+" / "+g.cal+" cal";F.left.textContent=t.c<=g.cal?r0(g.cal-t.c)+" left":r0(t.c-g.cal)+" over";
   F.bar.style.width=Math.min(100,t.c/g.cal*100)+"%";
+  F.cal2.textContent=F.cal.textContent;F.left2.textContent=F.left.textContent;F.bar2.style.width=F.bar.style.width;F.prot2.textContent="Protein "+r0(t.p)+" / "+g.pro+" g";
   F.p.textContent=r0(t.p)+" g";F.pg.textContent="protein (goal "+g.pro+" g)";F.cb.textContent=r0(t.cb)+" g";F.f.textContent=r0(t.f)+" g";
   F.log.innerHTML="";
   if(!L.length)F.log.appendChild(el("div","note","Nothing logged yet. Search for a food above."));
@@ -346,7 +350,11 @@ function startCam(){
   [[g1,"Calorie goal","cal"],[g2,"Protein goal (g)","pro"]].forEach(function(x){
     var lb=el("label","lbl",x[1]),inp=el("input","in");inp.type="number";inp.inputMode="numeric";inp.min="1";inp.value=state.goals[x[2]];
     inp.oninput=function(){var v=parseFloat(inp.value);if(v>0){state.goals[x[2]]=v;save();updFood()}};lb.appendChild(inp);x[0].appendChild(lb);gr.appendChild(x[0])});
-  sum.appendChild(gr);box.appendChild(sum);
+  sum.appendChild(gr);
+  var pn=el("div","pin"),pt=el("div","wtop");F.cal2=el("span","wtitle");F.left2=el("span","wgoal");pt.appendChild(F.cal2);pt.appendChild(F.left2);pn.appendChild(pt);
+  var pb=el("div","progress");F.bar2=el("div","bar");pb.appendChild(F.bar2);pn.appendChild(pb);
+  var pm=el("div","pmeta");F.prot2=el("span");pm.appendChild(F.prot2);pn.appendChild(pm);
+  box.appendChild(pn);box.appendChild(sum);
   box.appendChild(el("h2",null,"Add food"));
   var ag=el("div","grid2");ag.style.gridTemplateColumns="3fr 1fr";ag.style.marginTop="0";
   F.search=el("input","in");F.search.type="search";F.search.placeholder="Search: chicken, rice, banana";F.search.setAttribute("aria-label","Search foods");F.search.oninput=updResults;
